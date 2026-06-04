@@ -134,3 +134,80 @@ def remove_from_cart(db: Session, user_id: int, product_id: int):
     db.delete(cart_item)
     db.commit()
     return {"message": "Item removed from cart"}
+
+def place_order(db: Session, user_id: int):
+    cart_items = db.query(models.CartItem).filter(
+        models.CartItem.user_id == user_id
+    ).all()
+
+    if not cart_items:
+        return None
+    
+    total_price = 0
+    order_items_data = []
+
+    for cart_item in cart_items:
+        product = db.query(models.Product).filter(
+            models.Product.id == cart_item.product_id
+        ).first()
+
+        if product.stock <cart_item.quantity:
+            return {"error": f"Not enough stock for {product.name}"}
+
+        subtotal = product.price * cart_item.quantity
+        total_price += subtotal
+
+        order_items_data.append({
+            "product": product,
+            "quantity": cart_item.quantity,
+            "price": product.price
+        })
+    
+    new_order = models.Order(
+        user_id=user_id,
+        total_price=total_price,
+        status="pending"
+    )
+    db.add(new_order)
+    db.commit()
+    db.refresh(new_order)
+
+    for data in order_items_data:
+        order_item = models.OrderItem(
+            order_id=new_order.id,
+            product_id=data["product"].id,
+            quantity=data["quantity"],
+            price_at_purchase=data["price"]
+        )
+        db.add(order_item)
+
+        data["product"].stock -= data["quantity"]
+
+    for cart_item in cart_items:
+        db.delete(cart_item)
+
+    db.commit()
+    db.refresh(new_order)
+    return new_order
+
+def get_my_orders(db: Session, user_id: int):
+    return db.query(models.Order).filter(
+        models.Order.user_id == user_id
+    ).all()
+
+def cancel_order(db: Session, user_id: int, order_id: int):
+    order = db.query(models.Order).filter(
+        models.Order.id == order_id,
+        models.Order.user_id == user_id
+    ).first()
+
+    if order is None:
+        return None
+
+    if order.status != "pending":
+        return {"error": "Only pending orders can be cancelled"}
+
+    order.status = "cancelled"
+    db.commit()
+    db.refresh(order)
+    return order

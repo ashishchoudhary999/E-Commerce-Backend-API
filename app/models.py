@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
+from sqlalchemy.orm import relationship
 from datetime import datetime
 from .database import Base
 
@@ -37,6 +38,8 @@ class Order(Base):
     total_price = Column(Float, nullable=False)
     status = Column(String, default="pending")
     created_at = Column(DateTime, default=datetime.utcnow)
+
+    items = relationship("OrderItem")
 
 class OrderItem(Base):
     __tablename__ = "order_items"

@@ -50,3 +50,21 @@ class CartItemResponse(BaseModel):
 class CartResponse(BaseModel):
     items: List[CartItemResponse]
     total: float
+
+class OrderItemResponse(BaseModel):
+    product_id: int
+    quantity: int
+    price_at_purchase: float
+
+    class Config:
+        from_attributes = True
+
+class OrderResponse(BaseModel):
+    id: int
+    total_price: float
+    status: str
+    created_at: datetime
+    items: List[OrderItemResponse]
+
+    class Config:
+        from_attributes = True
