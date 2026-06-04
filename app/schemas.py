@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List
 
 class UserCreate(BaseModel):
     email: str
@@ -35,4 +36,17 @@ class ProductResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class CartItemCreate
+class CartItemCreate(BaseModel):
+    product_id: int
+    quantity: int
+
+class CartItemResponse(BaseModel):
+    product_id: int
+    name: str
+    price: float
+    quantity: int
+    subtotal: float
+
+class CartResponse(BaseModel):
+    items: List[CartItemResponse]
+    total: float

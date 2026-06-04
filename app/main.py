@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from .database import engine, Base
 from . import models
-from .routes import user, product
+from .routes import user, product, cart
 
 app = FastAPI(title="E-Commerce API")
 
@@ -10,7 +10,7 @@ Base.metadata.create_all(bind=engine)
 
 app.include_router(user.router)
 app.include_router(product.router)
-
+app.include_router(cart.router)
 
 @app.get("/")
 def home():
